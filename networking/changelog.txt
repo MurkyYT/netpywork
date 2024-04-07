@@ -1,0 +1,4 @@
+Ver 0.0.1:
+First ever version of the networking module
+Basic server and client tcp udp implementation
+Can split udp into seperate messages and reconstruct them
