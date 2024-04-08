@@ -102,8 +102,8 @@ class utils:
         closing = (1 if not keep_con else 0).to_bytes(1,"big")
         sock.send(length + closing + msg)
     def send_udp(sock: socket.socket,port:int,address: tuple,msg: bytes,seq_no: int,seq_id:int ,amount:int):
-        # Length msg + 2 byte for port + 4 bytes for seq + 4 bytes for seq id+ 1 byte for is end
-        length = (len(msg) + 2 + 4 + 1 + 4).to_bytes(4,"big")
+        # Length msg + 2 byte for port + 4 bytes for seq + 2 bytes for seq id + 2 bytes for amount of seq
+        length = (len(msg) + 2 + 4 + 2 + 2).to_bytes(4,"big")
         port = port.to_bytes(2,"big")
         seqno = seq_no.to_bytes(4,"big")
         seqid = seq_id.to_bytes(2,"big")
