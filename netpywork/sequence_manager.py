@@ -51,7 +51,7 @@ class sequence_manager:
             for address in self.__messages.keys():
                 for seqno in self.__messages[address].keys():
                     timestamp = self.__messages_in_process[(address,seqno)]
-                    if(timestamp > datetime.datetime.now() + netpywork.udp_storetime):
+                    if(timestamp + netpywork.udp_storetime < datetime.datetime.now()):
                         del self.__messages_in_process[(address,seqno)]
                         del self.__messages[address][seqno]
         except:
