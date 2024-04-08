@@ -1,3 +1,7 @@
+Ver 0.0.2.1:
+Small bug fixes
+Ver 0.0.2:
+Changed udp sequncing
 Ver 0.0.1:
 First ever version of the networking module
 Basic server and client tcp udp implementation
