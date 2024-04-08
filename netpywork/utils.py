@@ -9,7 +9,9 @@ class udp_msg:
 
     Seq_no 4 bytes
 
-    End 1 byte
+    Seq_id 2 bytes
+
+    Amount of ids 2 bytes
 
     Msg ? bytes
     """
@@ -17,7 +19,8 @@ class udp_msg:
     length: int = -1
     address: tuple = ()
     seq_no: int = -1
-    is_end: bool = False
+    seq_id: int = -1
+    amount: int = -1
     data: bytes = None
 
 class tcp_msg:
@@ -37,7 +40,7 @@ class tcp_msg:
     closing:bool = False
 
 class utils:
-    MAX_UDP_PACKET_SIZE = 65507 - 4 - 2 - 1 - 4
+    MAX_UDP_PACKET_SIZE = 65507 - 4 - 2 - 4 - 2 - 2
     def peek_udp(sock: socket.socket,size: int):
             buffer = bytearray(size)
             # Windows workaround as it errors out with errorcode 10040 even though it peeked the msg
@@ -64,15 +67,17 @@ class utils:
         port = int.from_bytes(utils.read_message(result,2),"big")
         full_address = (result_address[0],port)
         seqno = int.from_bytes(utils.read_message(result,4),"big")
-        is_end = int.from_bytes(utils.read_message(result,1),"big") == 1
+        seqid = int.from_bytes(utils.read_message(result,2),"big")
+        amount = int.from_bytes(utils.read_message(result,2),"big")
         result = utils.read_message(result)
         udp_message = udp_msg()
         udp_message.address = full_address
         udp_message.data = result
-        udp_message.is_end = is_end
+        udp_message.amount = amount
         udp_message.length = length
         udp_message.port = port
         udp_message.seq_no = seqno
+        udp_message.seq_id = seqid
         return udp_message
     def read_tcp_msg(socket: socket.socket):
         length = socket.recv(4)
@@ -96,10 +101,11 @@ class utils:
         length = (len(msg)+1).to_bytes(4,"big")
         closing = (1 if not keep_con else 0).to_bytes(1,"big")
         sock.send(length + closing + msg)
-    def send_udp(sock: socket.socket,port:int,address: tuple,msg: bytes,seq_no: int ,is_end:bool):
-        # Length msg + 2 byte for port + 4 bytes for seq + 1 byte for is end
-        length = (len(msg) + 2 + 4 + 1).to_bytes(4,"big")
+    def send_udp(sock: socket.socket,port:int,address: tuple,msg: bytes,seq_no: int,seq_id:int ,amount:int):
+        # Length msg + 2 byte for port + 4 bytes for seq + 4 bytes for seq id+ 1 byte for is end
+        length = (len(msg) + 2 + 4 + 1 + 4).to_bytes(4,"big")
         port = port.to_bytes(2,"big")
-        end = (1 if is_end else 0).to_bytes(1,"big")
         seqno = seq_no.to_bytes(4,"big")
-        sock.sendto(length + port + seqno + end + msg,address)
+        seqid = seq_id.to_bytes(2,"big")
+        amount = amount.to_bytes(2,"big")
+        sock.sendto(length + port + seqno + seqid + amount + msg,address)
