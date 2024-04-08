@@ -11,6 +11,7 @@
 # Example
 ```Python
 import netpywork as networking
+
 def server_receive(msg,proto):
     if(proto == networking.protocol.UDP):
         msg: networking.udp_msg = msg
@@ -48,10 +49,11 @@ def main():
     client.send_unreliable(("Hello!!!").encode())
     server.send_reliable("Hi1".encode(),client.address)
     server.send_unreliable("Hi2".encode(),client.address)
+
     client.close()
     server.close()
     
-    input()
+    input("Press any key to exit...")
 if __name__ == "__main__":
     main()
 ```
