@@ -9,8 +9,10 @@ def server_receive(msg,proto,self:networking.server):
         print("Server TCP:",msg.length,msg.data,msg.address)
 def server_connect(address,self: networking.server):
     print(f"Client with ip {address} connected")
+    print(f"All clients: {self.get_clients()}")
 def server_disconnect(address,self: networking.server):
     print(f"Client with ip {address} disconnected")
+    print(f"All clients: {self.get_clients()}")
 def client_connected(address,self: networking.client):
     print(f"Client conncted to {address}")
 def client_receive(msg,proto,self: networking.client):
