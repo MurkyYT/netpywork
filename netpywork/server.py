@@ -9,6 +9,8 @@ from .utils import _utils
 class server:
     def __init__(self,port : int) -> None:
         self.port : int = port
+        self.auto_receive_udp: bool = True
+        self.auto_receive_tcp: bool = True
         self.on_receive = None
         self.on_connect = None
         self.on_disconnect = None
@@ -22,12 +24,15 @@ class server:
         self.__tcp_thread: Thread = None
         self.__udp_thread: Thread = None
 
+        self.__udp_messages: list = []
+        self.__tcp_messages: list = []
         self.__clients: list = []
         self.__seq_manager: sequence_manager = sequence_manager()
         self.__addr_to_sock: dict = {}
         self.__udp_seq = 0
         self.__is_running = False
-
+    def get_clients(self):
+        return [x.getpeername() for x in self.__clients]
     def run(self):
         self.__is_running = True
         self.__tcp_thread = Thread(target=self.__run_tcp)
@@ -46,6 +51,18 @@ class server:
         self.__udp_thread.join()
         self.__udp_socket.close()
         self.__seq_manager.stop()
+    def has_tcp_messages(self) -> bool:
+        return len(self.__tcp_messages) > 0
+    def read_tcp_message(self) -> tcp_msg:
+        while len(self.__tcp_messages) < 1:
+            continue
+        return self.__tcp_messages.pop(0)
+    def has_udp_messages(self) -> bool:
+        return len(self.__udp_messages) > 0
+    def read_udp_message(self) -> udp_msg:
+        while len(self.__udp_messages) < 1:
+            continue
+        return self.__udp_messages.pop(0)
     def send_reliable(self,msg: bytes,address:tuple):
         _utils.send_tcp(self.__addr_to_sock[address],msg)
     def __get_actual_address(self,address):
@@ -76,7 +93,7 @@ class server:
         self.__seq_manager.delete_addr(socket_addr)
         del self.__addr_to_sock[socket_addr]
         if(self.on_disconnect):
-            self.on_disconnect(socket_addr)
+            self.on_disconnect(socket_addr,self)
     def __run_udp(self):
         while self.__is_running:
             try:
@@ -95,10 +112,12 @@ class server:
                     result_msg.port = message.port
                     result_msg.amount = message.amount
                     result_msg.seq_no = message.seq_no
-                    if(self.on_receive):
-                        self.on_receive(result_msg,protocol.UDP)
+                    self.__udp_messages.append(result_msg)
             except:
                 continue
+            finally:
+                if(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
+                    self.on_receive(self.__udp_messages.pop(),protocol.UDP,self)
     def __run_tcp(self):
         while self.__is_running:
             try:
@@ -111,19 +130,21 @@ class server:
                         self.__seq_manager.add_addr(client_addr)
                         self.__addr_to_sock[client_addr] = client_socket
                         if(self.on_connect):
-                            self.on_connect(client_addr)
+                            self.on_connect(client_addr,self)
                     else:
                         try:
                             message: tcp_msg = _utils.read_tcp_msg(sock)
                             # Remove the length of the is end byte to match udp length which is the data length
                             message.length -= 1
+                            self.__tcp_messages.append(message)
                             # TODO : move to logging
-                            # print("TCP",message.data)
-                            if(self.on_receive):
-                                self.on_receive(message,protocol.TCP)
+                            #print("TCP",message.data)
                             if(message.closing):
                                 self.__delete_client(sock)
                         except:
                             self.__delete_client(sock)
+                        finally:
+                            if(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
+                                self.on_receive(self.__tcp_messages.pop(),protocol.TCP,self)
             except:
                 continue

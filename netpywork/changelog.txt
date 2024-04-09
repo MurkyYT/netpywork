@@ -1,6 +1,10 @@
 Ver 0.0.4:
 Made utils class internal
 Cleaned up __init__.py
+Added auto_receive_udp and auto_receive_tcp options for both server and client
+Added read_tcp_message and read_udp_message for both server and client
+Added has_tcp_messages and has_udp_messages for both server and client
+Exceptions now occur when on receive is called
 Ver 0.0.3:
 Small bug fixes
 Ver 0.0.2:

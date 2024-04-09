@@ -10,6 +10,8 @@ class client:
         self.ip: str = ip
         self.port: int = port
         self.address: tuple = None
+        self.auto_receive_udp: bool = True
+        self.auto_receive_tcp: bool = True
         self.on_receive = None
         self.on_connect = None
 
@@ -20,6 +22,8 @@ class client:
         self.__tcp_thread: Thread = None
         self.__udp_thread: Thread = None
 
+        self.__udp_messages: list = []
+        self.__tcp_messages: list = []
         self.__seq_manager: sequence_manager = sequence_manager()
         self.__udp_seq = 0
         self.__is_running = False
@@ -37,7 +41,7 @@ class client:
         self.__udp_socket.settimeout(1)
         self.__udp_thread.start()
         if(self.on_connect):
-            self.on_connect(server_address)
+            self.on_connect(server_address,self)
     def close(self):
         self.__is_running = False
         server_address = self.__tcp_socket.getpeername()
@@ -49,6 +53,18 @@ class client:
         self.__udp_socket.close()
 
         self.__seq_manager.stop()
+    def has_tcp_messages(self) -> bool:
+        return len(self.__tcp_messages) > 0
+    def read_tcp_message(self) -> tcp_msg:
+        while len(self.__tcp_messages) < 1:
+            continue
+        return self.__tcp_messages.pop(0)
+    def has_udp_messages(self) -> bool:
+        return len(self.__udp_messages) > 0
+    def read_udp_message(self) -> udp_msg:
+        while len(self.__udp_messages) < 1:
+            continue
+        return self.__udp_messages.pop(0)
     def send_reliable(self,msg: bytes):
         _utils.send_tcp(self.__tcp_socket,msg)
     def send_unreliable(self,msg: bytes):
@@ -80,19 +96,23 @@ class client:
                     result_msg.port = message.port
                     result_msg.amount = message.amount
                     result_msg.seq_no = message.seq_no
-                    if(self.on_receive):
-                        self.on_receive(result_msg,protocol.UDP)
+                    self.__udp_messages.append(result_msg)
             except:
                 continue
+            finally:
+                if(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
+                    self.on_receive(self.__udp_messages.pop(),protocol.UDP,self)
     def __run_tcp(self):
         while self.__is_running:
             try:
                 message: tcp_msg = _utils.read_tcp_msg(self.__tcp_socket)
                 # Remove the length of the is end byte to match udp length which is the data length
                 message.length -= 1
+                self.__tcp_messages.append(message)
                 # TODO : move to logging
                 #print("TCP",message.data)
-                if(self.on_receive):
-                        self.on_receive(message,protocol.TCP)
             except:
                 continue
+            finally:
+                if(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
+                    self.on_receive(self.__tcp_messages.pop(),protocol.TCP,self)
