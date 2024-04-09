@@ -2,6 +2,7 @@ import socket
 from threading import Thread
 from .sequence_manager import sequence_manager
 from .utils import *
+from .utils import _utils
 from .protocol import *
 
 class client:
@@ -49,24 +50,24 @@ class client:
 
         self.__seq_manager.stop()
     def send_reliable(self,msg: bytes):
-        utils.send_tcp(self.__tcp_socket,msg)
+        _utils.send_tcp(self.__tcp_socket,msg)
     def send_unreliable(self,msg: bytes):
         msg_len = len(msg)
-        if(msg_len <= utils.MAX_UDP_PACKET_SIZE):
-            utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),msg,self.__udp_seq,0,1)
+        if(msg_len <= _utils.MAX_UDP_PACKET_SIZE):
+            _utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),msg,self.__udp_seq,0,1)
         else:
             parts = []
-            while (len(msg) > utils.MAX_UDP_PACKET_SIZE):
-                parts.append(msg[0:utils.MAX_UDP_PACKET_SIZE])
-                msg = msg[utils.MAX_UDP_PACKET_SIZE:]
+            while (len(msg) > _utils.MAX_UDP_PACKET_SIZE):
+                parts.append(msg[0:_utils.MAX_UDP_PACKET_SIZE])
+                msg = msg[_utils.MAX_UDP_PACKET_SIZE:]
             parts.append(msg)
             for i in range(len(parts)):
-                utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),parts[i],self.__udp_seq,i,len(parts))
+                _utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),parts[i],self.__udp_seq,i,len(parts))
         self.__udp_seq += 1
     def __run_udp(self):
         while self.__is_running:
             try:
-                message: udp_msg = utils.read_udp_msg(self.__udp_socket)
+                message: udp_msg = _utils.read_udp_msg(self.__udp_socket)
                 self.__seq_manager.add_seq(message.address,message.seq_no,message.data,message.seq_id)
                 if(message.amount == self.__seq_manager.get_amount(message.address,message.seq_no)):
                     # TODO : move to logging
@@ -86,7 +87,7 @@ class client:
     def __run_tcp(self):
         while self.__is_running:
             try:
-                message: tcp_msg = utils.read_tcp_msg(self.__tcp_socket)
+                message: tcp_msg = _utils.read_tcp_msg(self.__tcp_socket)
                 # Remove the length of the is end byte to match udp length which is the data length
                 message.length -= 1
                 # TODO : move to logging

@@ -1,3 +1,6 @@
+Ver 0.0.4:
+Made utils class internal
+Cleaned up __init__.py
 Ver 0.0.3:
 Small bug fixes
 Ver 0.0.2:

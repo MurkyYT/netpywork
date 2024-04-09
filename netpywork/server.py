@@ -4,6 +4,7 @@ from threading import Thread
 from .protocol import *
 from .sequence_manager import sequence_manager
 from .utils import *
+from .utils import _utils
 
 class server:
     def __init__(self,port : int) -> None:
@@ -46,21 +47,21 @@ class server:
         self.__udp_socket.close()
         self.__seq_manager.stop()
     def send_reliable(self,msg: bytes,address:tuple):
-        utils.send_tcp(self.__addr_to_sock[address],msg)
+        _utils.send_tcp(self.__addr_to_sock[address],msg)
     def __get_actual_address(self,address):
         return self.__addr_to_sock[address].getpeername()
     def send_unreliable(self,msg: bytes,address:tuple):
         msg_len = len(msg)
-        if(msg_len <= utils.MAX_UDP_PACKET_SIZE):
-            utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),msg,self.__udp_seq,0,1)
+        if(msg_len <= _utils.MAX_UDP_PACKET_SIZE):
+            _utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),msg,self.__udp_seq,0,1)
         else:
             parts = []
-            while (len(msg) > utils.MAX_UDP_PACKET_SIZE):
-                parts.append(msg[0:utils.MAX_UDP_PACKET_SIZE])
-                msg = msg[utils.MAX_UDP_PACKET_SIZE:]
+            while (len(msg) > _utils.MAX_UDP_PACKET_SIZE):
+                parts.append(msg[0:_utils.MAX_UDP_PACKET_SIZE])
+                msg = msg[_utils.MAX_UDP_PACKET_SIZE:]
             parts.append(msg)
             for i in range(len(parts)):
-                utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),parts[i],self.__udp_seq,i,len(parts))
+                _utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),parts[i],self.__udp_seq,i,len(parts))
         self.__udp_seq += 1
     def __has_client(self,address):
         for client in self.__clients:
@@ -79,7 +80,7 @@ class server:
     def __run_udp(self):
         while self.__is_running:
             try:
-                message: udp_msg = utils.read_udp_msg(self.__udp_socket)
+                message: udp_msg = _utils.read_udp_msg(self.__udp_socket)
                 if(not self.__has_client(message.address)):
                     continue
                 self.__seq_manager.add_seq(message.address,message.seq_no,message.data,message.seq_id)
@@ -113,7 +114,7 @@ class server:
                             self.on_connect(client_addr)
                     else:
                         try:
-                            message: tcp_msg = utils.read_tcp_msg(sock)
+                            message: tcp_msg = _utils.read_tcp_msg(sock)
                             # Remove the length of the is end byte to match udp length which is the data length
                             message.length -= 1
                             # TODO : move to logging

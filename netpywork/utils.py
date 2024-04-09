@@ -39,7 +39,7 @@ class tcp_msg:
     data:bytes = None
     closing:bool = False
 
-class utils:
+class _utils:
     MAX_UDP_PACKET_SIZE = 65507 - 4 - 2 - 4 - 2 - 2
     def peek_udp(sock: socket.socket,size: int):
             buffer = bytearray(size)
@@ -58,18 +58,18 @@ class utils:
             del byte[0]
         return bytes(result)
     def read_udp_msg(socket: socket.socket) -> udp_msg:
-        length = utils.peek_udp(socket,4)
+        length = _utils.peek_udp(socket,4)
         # MSG Size + Size len
         length = int.from_bytes(length,"big") + 4
         result,result_address = socket.recvfrom(length)
         result = bytearray(result)
-        utils.read_message(result,4)
-        port = int.from_bytes(utils.read_message(result,2),"big")
+        _utils.read_message(result,4)
+        port = int.from_bytes(_utils.read_message(result,2),"big")
         full_address = (result_address[0],port)
-        seqno = int.from_bytes(utils.read_message(result,4),"big")
-        seqid = int.from_bytes(utils.read_message(result,2),"big")
-        amount = int.from_bytes(utils.read_message(result,2),"big")
-        result = utils.read_message(result)
+        seqno = int.from_bytes(_utils.read_message(result,4),"big")
+        seqid = int.from_bytes(_utils.read_message(result,2),"big")
+        amount = int.from_bytes(_utils.read_message(result,2),"big")
+        result = _utils.read_message(result)
         udp_message = udp_msg()
         udp_message.address = full_address
         udp_message.data = result
@@ -86,8 +86,8 @@ class utils:
         while len(buffer) < length:
             buffer += socket.recv(1)
         buffer = bytearray(buffer)
-        close_con = int.from_bytes(utils.read_message(buffer,1),"big") == 1
-        result = utils.read_message(buffer)
+        close_con = int.from_bytes(_utils.read_message(buffer,1),"big") == 1
+        result = _utils.read_message(buffer)
         address = socket.getpeername()
         tcp_message = tcp_msg()
         tcp_message.address = address
