@@ -63,6 +63,18 @@ class server:
         while len(self.__udp_messages) < 1:
             continue
         return self.__udp_messages.pop(0)
+    def send_all(self,msg:bytes,proto:protocol = protocol.TCP,exceptions: list = []):
+        for client in self.get_clients():
+            if(client in exceptions):
+                continue
+            self.send(msg,client,proto)
+    def send(self,msg:bytes,address:tuple,proto:protocol = protocol.TCP):
+        if(proto == protocol.TCP):
+            self.send_reliable(msg,address)
+        elif(proto == protocol.UDP):
+            self.send_unreliable(msg,address)
+        else:
+            raise ValueError(f"Protocol type is unknown")
     def send_reliable(self,msg: bytes,address:tuple):
         _utils.send_tcp(self.__addr_to_sock[address],msg)
     def __get_actual_address(self,address):
@@ -116,8 +128,8 @@ class server:
             except:
                 continue
             finally:
-                if(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
-                    self.on_receive(self.__udp_messages.pop(),protocol.UDP,self)
+                while(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
+                    self.on_receive(self.__udp_messages.pop(0),protocol.UDP,self)
     def __run_tcp(self):
         while self.__is_running:
             try:
@@ -144,7 +156,7 @@ class server:
                         except:
                             self.__delete_client(sock)
                         finally:
-                            if(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
-                                self.on_receive(self.__tcp_messages.pop(),protocol.TCP,self)
+                            while(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
+                                self.on_receive(self.__tcp_messages.pop(0),protocol.TCP,self)
             except:
                 continue

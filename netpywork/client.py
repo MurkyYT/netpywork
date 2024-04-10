@@ -65,6 +65,13 @@ class client:
         while len(self.__udp_messages) < 1:
             continue
         return self.__udp_messages.pop(0)
+    def send(self,msg:bytes,proto:protocol = protocol.TCP):
+        if(proto == protocol.TCP):
+            self.send_reliable(msg)
+        elif(proto == protocol.UDP):
+            self.send_unreliable(msg)
+        else:
+            raise ValueError(f"Protocol type is unknown")
     def send_reliable(self,msg: bytes):
         _utils.send_tcp(self.__tcp_socket,msg)
     def send_unreliable(self,msg: bytes):
@@ -100,8 +107,8 @@ class client:
             except:
                 continue
             finally:
-                if(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
-                    self.on_receive(self.__udp_messages.pop(),protocol.UDP,self)
+                while(self.on_receive and self.auto_receive_udp and self.has_udp_messages()):
+                    self.on_receive(self.__udp_messages.pop(0),protocol.UDP,self)
     def __run_tcp(self):
         while self.__is_running:
             try:
@@ -114,5 +121,5 @@ class client:
             except:
                 continue
             finally:
-                if(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
-                    self.on_receive(self.__tcp_messages.pop(),protocol.TCP,self)
+                while(self.on_receive and self.auto_receive_tcp and self.has_tcp_messages()):
+                    self.on_receive(self.__tcp_messages.pop(0),protocol.TCP,self)

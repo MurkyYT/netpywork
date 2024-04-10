@@ -33,13 +33,17 @@ def main():
     
     server.run()
     client.connect()
-    
+
+    server.send_all("HIII".encode())
+    server.send_all("HIII2".encode(),exceptions=[client.address])
     client.send_reliable("Hello :)".encode())
     client.send_unreliable(("Hello!!!").encode())
-    client.send_unreliable(("Hello!!!222").encode())
-    client.send_unreliable(("Hello!!!333").encode())
+    client.send(("Hello!!!222").encode(),networking.protocol.UDP)
+    #TCP is used by default
+    client.send(("Hello!!!333").encode())
     server.send_reliable("Hi1".encode(),client.address)
     server.send_unreliable("Hi2".encode(),client.address)
+    
 
     client.close()
     server.close()

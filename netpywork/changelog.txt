@@ -7,6 +7,9 @@ Added has_tcp_messages and has_udp_messages for both server and client
 Exceptions now occur when on receive is called
 Added self object to on receive, on connect, and on disconnect for both server and client
 Added get_clients to server
+Added basic chat example
+Added send_all to server
+Added send to server and client, default protocol is TCP
 Ver 0.0.3:
 Small bug fixes
 Ver 0.0.2:
