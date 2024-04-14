@@ -5,6 +5,7 @@ from .protocol import *
 from .sequence_manager import sequence_manager
 from .utils import *
 from .utils import _utils
+from .constants import *
 
 class server:
     def __init__(self,port : int) -> None:
@@ -40,7 +41,7 @@ class server:
         self.__tcp_thread.start()
 
         self.__udp_thread = Thread(target=self.__run_udp)
-        self.__udp_socket.settimeout(1)
+        self.__udp_socket.settimeout(UDP_TIMEOUT)
         self.__udp_thread.start()
     def close(self):
         self.__is_running = False
@@ -81,13 +82,13 @@ class server:
         return self.__addr_to_sock[address].getpeername()
     def send_unreliable(self,msg: bytes,address:tuple):
         msg_len = len(msg)
-        if(msg_len <= _utils.MAX_UDP_PACKET_SIZE):
+        if(msg_len <= MAX_UDP_PACKET_SIZE):
             _utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),msg,self.__udp_seq,0,1)
         else:
             parts = []
-            while (len(msg) > _utils.MAX_UDP_PACKET_SIZE):
-                parts.append(msg[0:_utils.MAX_UDP_PACKET_SIZE])
-                msg = msg[_utils.MAX_UDP_PACKET_SIZE:]
+            while (len(msg) > MAX_UDP_PACKET_SIZE):
+                parts.append(msg[0:MAX_UDP_PACKET_SIZE])
+                msg = msg[MAX_UDP_PACKET_SIZE:]
             parts.append(msg)
             for i in range(len(parts)):
                 _utils.send_udp(self.__udp_socket,self.__tcp_socket.getsockname()[1],self.__get_actual_address(address),parts[i],self.__udp_seq,i,len(parts))

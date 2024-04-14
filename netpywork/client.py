@@ -4,6 +4,7 @@ from .sequence_manager import sequence_manager
 from .utils import *
 from .utils import _utils
 from .protocol import *
+from .constants import *
 
 class client:
     def __init__(self,ip: str,port: int) -> None:
@@ -38,7 +39,7 @@ class client:
 
         self.__udp_thread = Thread(target=self.__run_udp)
         self.__udp_socket.bind(self.address)
-        self.__udp_socket.settimeout(1)
+        self.__udp_socket.settimeout(UDP_TIMEOUT)
         self.__udp_thread.start()
         if(self.on_connect):
             self.on_connect(server_address,self)
@@ -76,13 +77,13 @@ class client:
         _utils.send_tcp(self.__tcp_socket,msg)
     def send_unreliable(self,msg: bytes):
         msg_len = len(msg)
-        if(msg_len <= _utils.MAX_UDP_PACKET_SIZE):
+        if(msg_len <= MAX_UDP_PACKET_SIZE):
             _utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),msg,self.__udp_seq,0,1)
         else:
             parts = []
-            while (len(msg) > _utils.MAX_UDP_PACKET_SIZE):
-                parts.append(msg[0:_utils.MAX_UDP_PACKET_SIZE])
-                msg = msg[_utils.MAX_UDP_PACKET_SIZE:]
+            while (len(msg) > MAX_UDP_PACKET_SIZE):
+                parts.append(msg[0:MAX_UDP_PACKET_SIZE])
+                msg = msg[MAX_UDP_PACKET_SIZE:]
             parts.append(msg)
             for i in range(len(parts)):
                 _utils.send_udp(self.__udp_socket,self.address[1],(self.ip,self.port),parts[i],self.__udp_seq,i,len(parts))

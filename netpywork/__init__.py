@@ -4,5 +4,5 @@ from .client import *
 from .protocol import *
 from datetime import timedelta
 
-__version__ = constants.VERSION
+__version__ = VERSION
 udp_storetime: timedelta = timedelta(minutes=1)

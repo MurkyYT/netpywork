@@ -40,7 +40,6 @@ class tcp_msg:
     closing:bool = False
 
 class _utils:
-    MAX_UDP_PACKET_SIZE = 65507 - 4 - 2 - 4 - 2 - 2
     def peek_udp(sock: socket.socket,size: int):
             buffer = bytearray(size)
             # Windows workaround as it errors out with errorcode 10040 even though it peeked the msg
