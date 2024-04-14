@@ -48,11 +48,14 @@ class sequence_manager:
             return None
     def __clear_old(self):
         try:
-            for address in self.__messages.keys():
-                for seqno in self.__messages[address].keys():
-                    timestamp = self.__messages_in_process[(address,seqno)]
-                    if(timestamp + netpywork.udp_storetime < datetime.datetime.now()):
-                        del self.__messages_in_process[(address,seqno)]
-                        del self.__messages[address][seqno]
+            addresses = self.__messages.keys()
+            for address in addresses:
+                seqences = self.__messages[address].keys()
+                for seqno in seqences:
+                    if((address,seqno) in self.__messages_in_process.keys()):
+                        timestamp = self.__messages_in_process[(address,seqno)]
+                        if(timestamp + netpywork.udp_storetime < datetime.datetime.now()):
+                            del self.__messages_in_process[(address,seqno)]
+                            del self.__messages[address][seqno]
         except:
             pass

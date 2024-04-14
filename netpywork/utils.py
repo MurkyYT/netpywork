@@ -83,6 +83,7 @@ class _utils:
         length = socket.recv(4)
         length = int.from_bytes(length,"big")
         buffer = socket.recv(length)
+        # TCP not always reads the entire message, read byte by byte untill length is correct
         while len(buffer) < length:
             buffer += socket.recv(1)
         buffer = bytearray(buffer)
