@@ -46,12 +46,14 @@ class client:
     def close(self):
         self.__is_running = False
         server_address = self.__tcp_socket.getpeername()
+        self.__tcp_socket.shutdown(socket.SHUT_RDWR)
         self.__tcp_socket.close()
         self.__tcp_thread.join()
         self.__seq_manager.delete_addr(server_address)
 
         self.__udp_thread.join()
         self.__udp_socket.close()
+        self.__udp_socket.shutdown(socket.SHUT_RDWR)
 
         self.__seq_manager.stop()
     def has_tcp_messages(self) -> bool:

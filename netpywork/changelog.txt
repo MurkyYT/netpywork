@@ -1,3 +1,7 @@
+Ver 0.0.5:
+Fixed sequncing clearing
+Cleaned up constants
+Fixed server and client closing
 Ver 0.0.4:
 Made utils class internal
 Cleaned up __init__.py
