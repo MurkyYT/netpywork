@@ -45,14 +45,13 @@ class server:
         self.__udp_thread.start()
     def close(self):
         self.__is_running = False
-        self.__tcp_socket.shutdown(socket.SHUT_RDWR)
         self.__tcp_socket.close()
         self.__tcp_thread.join()
         for client in self.__clients:
             self.__seq_manager.delete_addr(client.getpeername())
         self.__udp_thread.join()
-        self.__udp_socket.close()
         self.__udp_socket.shutdown(socket.SHUT_RDWR)
+        self.__udp_socket.close()
         self.__seq_manager.stop()
     def has_tcp_messages(self) -> bool:
         return len(self.__tcp_messages) > 0
