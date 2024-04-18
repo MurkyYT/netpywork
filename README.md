@@ -1,4 +1,9 @@
-# netpywork
+
+# *netpywork* 
+
+![PYPI Version](https://img.shields.io/pypi/v/netpywork?style=for-the-badge&logo=python&logoColor=orange)
+
+
 **netpywork** is a library that makes using tcp and udp server and client easier
 
 # Features
