@@ -52,8 +52,8 @@ class client:
         self.__seq_manager.delete_addr(server_address)
 
         self.__udp_thread.join()
-        self.__udp_socket.close()
         self.__udp_socket.shutdown(socket.SHUT_RDWR)
+        self.__udp_socket.close()
 
         self.__seq_manager.stop()
     def has_tcp_messages(self) -> bool:
