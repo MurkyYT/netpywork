@@ -1,4 +1,6 @@
 import socket
+import netpywork
+
 class udp_msg:
     """
     UDP Message header:
@@ -97,15 +99,23 @@ class _utils:
         tcp_message.port = address[1]
         return tcp_message
     def send_tcp(sock: socket.socket,msg: bytes,keep_con:bool = True):
-        # Length msg + 1 byte for keep con
-        length = (len(msg)+1).to_bytes(4,"big")
-        closing = (1 if not keep_con else 0).to_bytes(1,"big")
-        sock.send(length + closing + msg)
+        try:
+            # Length msg + 1 byte for keep con
+            length = (len(msg)+1).to_bytes(4,"big")
+            closing = (1 if not keep_con else 0).to_bytes(1,"big")
+            sock.send(length + closing + msg)
+        except OSError as err:
+            if(netpywork.verbose):
+                print(f'[WARN] An error ocurred when sending tcp message ({err.errno} - {err.strerror})')
     def send_udp(sock: socket.socket,port:int,address: tuple,msg: bytes,seq_no: int,seq_id:int ,amount:int):
-        # Length msg + 2 byte for port + 4 bytes for seq + 2 bytes for seq id + 2 bytes for amount of seq
-        length = (len(msg) + 2 + 4 + 2 + 2).to_bytes(4,"big")
-        port = port.to_bytes(2,"big")
-        seqno = seq_no.to_bytes(4,"big")
-        seqid = seq_id.to_bytes(2,"big")
-        amount = amount.to_bytes(2,"big")
-        sock.sendto(length + port + seqno + seqid + amount + msg,address)
+        try:
+            # Length msg + 2 byte for port + 4 bytes for seq + 2 bytes for seq id + 2 bytes for amount of seq
+            length = (len(msg) + 2 + 4 + 2 + 2).to_bytes(4,"big")
+            port = port.to_bytes(2,"big")
+            seqno = seq_no.to_bytes(4,"big")
+            seqid = seq_id.to_bytes(2,"big")
+            amount = amount.to_bytes(2,"big")
+            sock.sendto(length + port + seqno + seqid + amount + msg,address)
+        except OSError as err:
+            if(netpywork.verbose):
+                print(f'[WARN] An error ocurred when sending udp message ({err.errno} - {err.strerror})')

@@ -1,3 +1,7 @@
+"""
+Just a basic test of server and client
+"""
+
 import netpywork as networking
 
 def server_receive(msg,proto,self:networking.server):

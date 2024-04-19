@@ -1,5 +1,6 @@
 import socket
 import select
+import netpywork
 from threading import Thread
 from .protocol import *
 from .sequence_manager import sequence_manager
@@ -42,6 +43,7 @@ class server:
 
         self.__udp_thread = Thread(target=self.__run_udp)
         self.__udp_socket.settimeout(UDP_TIMEOUT)
+        self.__udp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,netpywork.udp_buffer_size)
         self.__udp_thread.start()
     def close(self):
         self.__is_running = False

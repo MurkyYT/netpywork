@@ -1,3 +1,7 @@
+"""
+A basic chat example
+"""
+
 import netpywork as networking
 
 def client_on_receive(msg,proto,self: networking.client):

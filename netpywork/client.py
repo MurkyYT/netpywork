@@ -1,4 +1,5 @@
 import socket
+import netpywork
 from threading import Thread
 from .sequence_manager import sequence_manager
 from .utils import *
@@ -34,22 +35,22 @@ class client:
         self.__tcp_socket.connect((self.ip,self.port))
         self.__tcp_thread.start()
         self.address = self.__tcp_socket.getsockname()
-        server_address = self.__tcp_socket.getpeername()
-        self.__seq_manager.add_addr(server_address)
+        self.server_address = self.__tcp_socket.getpeername()
+        self.__seq_manager.add_addr(self.server_address)
 
         self.__udp_thread = Thread(target=self.__run_udp)
         self.__udp_socket.bind(self.address)
         self.__udp_socket.settimeout(UDP_TIMEOUT)
+        self.__udp_socket.setsockopt(socket.SOL_SOCKET,socket.SO_RCVBUF,netpywork.udp_buffer_size)
         self.__udp_thread.start()
         if(self.on_connect):
-            self.on_connect(server_address,self)
+            self.on_connect(self.server_address,self)
     def close(self):
         self.__is_running = False
-        server_address = self.__tcp_socket.getpeername()
         self.__tcp_socket.shutdown(socket.SHUT_RDWR)
         self.__tcp_socket.close()
         self.__tcp_thread.join()
-        self.__seq_manager.delete_addr(server_address)
+        self.__seq_manager.delete_addr(self.server_address)
 
         self.__udp_thread.join()
         self.__udp_socket.shutdown(socket.SHUT_RDWR)
