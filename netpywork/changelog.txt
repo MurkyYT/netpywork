@@ -1,7 +1,6 @@
 Ver 0.0.6:
 Added setting for chaning the udp buf size
 Added example of sending a webcam image over udp
-Added warning message when cant send udp/tcp message
 Added verbose options
 Ver 0.0.5:
 Fixed sequncing clearing
